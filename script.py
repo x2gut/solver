@@ -93,18 +93,19 @@ class PortalTestSolver:
             questions.append(question_text)
 
         for right_answer in right_answers_list:
+            right_answer_text = right_answer.text
             try:
-                right_answer_img_src = right_answer.find_element(By.TAG_NAME, "img").get_attribute("src")
-                answers.append(right_answer_img_src)
-            except NoSuchElementException:
-                right_answer_text = right_answer.text
-                answer_split = right_answer_text.split(': ')[1]
+                answer_split = right_answer_text.split('Правильні відповіді: ')[1]
+                answers.append(answer_split)
+            except IndexError:
+                answer_split = right_answer_text.split("Правильна відповідь: ")[1]
                 answers.append(answer_split)
 
         question_to_answer = {}
 
         for question, answer in zip(questions, answers):
             question_to_answer.setdefault(question, []).append(answer)
+        print(question_to_answer)
         return question_to_answer
 
     def get_results(self):
@@ -115,7 +116,7 @@ class PortalTestSolver:
               f"Если оценка меньше 10, возможно тест содержит изображения или спец. символы. В таком случае необходимо пройти его в ручную.")
 
     def solve_test(self, test_url: str, question_to_answer: dict):
-        self.pages_count = 1
+        self.pages_count = 0
         self.driver.get(test_url)
         print("Прохожу тест...")
         # Нажимаем на кнопку для начала
@@ -141,31 +142,32 @@ class PortalTestSolver:
                             if self.driver.find_element(By.XPATH,
                                                         f"//div[contains(@class, 'qtext') and contains(text(), '{question}')]"):
                                 for item in question_to_answer[question]:
-                                    if item == answer:
-                                        try:
-                                            self.driver.find_element(By.XPATH,
-                                                                     f"//label[contains(text(), '{answer}')]").click()
-                                            time.sleep(1)
-                                        except InvalidSelectorException:
-                                            print(InvalidSelectorException)
-                                            self.driver.find_element(By.XPATH,
-                                                                     f'//label[contains(text(), "{answer}")]').click()
-                                            time.sleep(1)
+                                    for question_item in question_to_answer.keys():
+                                        if item == answer and question_item == question:
+                                            try:
+                                                self.driver.find_element(By.XPATH,
+                                                                         f"//label[contains(text(), '{item}')]").click()
+                                                time.sleep(1)
+                                            except InvalidSelectorException:
+                                                print(InvalidSelectorException)
+                                                self.driver.find_element(By.XPATH,
+                                                                         f'//label[contains(text(), "{item}")]').click()
+                                                time.sleep(1)
                         except InvalidSelectorException:
-                            print(InvalidSelectorException)
                             if self.driver.find_element(By.XPATH,
                                                         f'//div[contains(@class, "qtext") and contains(text(), "{question}")]'):
                                 for item in question_to_answer[question]:
-                                    if item == answer:
-                                        try:
-                                            self.driver.find_element(By.XPATH,
-                                                                     f'//label[contains(text(), "{answer}")]').click()
-                                            time.sleep(1)
-                                        except InvalidSelectorException:
-                                            print(InvalidSelectorException)
-                                            self.driver.find_element(By.XPATH,
-                                                                     f"//label[contains(text(), '{answer}')]").click()
-                                            time.sleep(1)
+                                    for question_item in question_to_answer.keys():
+                                        if item == answer and question_item == question:
+                                            try:
+                                                self.driver.find_element(By.XPATH,
+                                                                         f'//label[contains(text(), "{item}")]').click()
+                                                time.sleep(1)
+                                            except InvalidSelectorException:
+                                                print(InvalidSelectorException)
+                                                self.driver.find_element(By.XPATH,
+                                                                         f"//label[contains(text(), '{item}')]").click()
+                                                time.sleep(1)
                     except NoSuchElementException:
                         continue
 
