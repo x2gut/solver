@@ -5,6 +5,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 import time
+import validators
 
 
 class PortalTestSolver:
@@ -13,7 +14,7 @@ class PortalTestSolver:
         self.options = webdriver.ChromeOptions()
         self.options.headless = headless
         self.driver = webdriver.Chrome(executable_path=driver_path, options=self.options)
-        self.pages_count = 1
+        self.pages_count = 0
 
     def login(self, email: str, password: str):
         self.driver.get("https://op.tsatu.edu.ua/login/")
@@ -33,8 +34,19 @@ class PortalTestSolver:
         return True
 
     def find_correct_answers(self, test_url: str) -> dict:
+        # Проверка ссылки на валид
+        if not validators.url(test_url):
+            print("Неправильная ссылка. Правильный формат -> https://.../...")
+            return
         self.driver.get(test_url)
         time.sleep(1)
+        # Проверка, количества оставшихся попыток
+        try:
+            if self.driver.find_element(By.XPATH, "//p[contains(text(), 'У Вас більше немає спроб')]") is not None:
+                print("У вас больше нет попыток.")
+                return
+        except NoSuchElementException:
+            pass
         try:
             if self.driver.find_element(By.XPATH, "//p[contains(text(), 'Кількість дозволених спроб: 1')]") is not None:
                 print("В этом тесте разрешена только одна попытка. Я не могу пройти его.")
@@ -103,6 +115,7 @@ class PortalTestSolver:
               f"Если оценка меньше 10, возможно тест содержит изображения или спец. символы. В таком случае необходимо пройти его в ручную.")
 
     def solve_test(self, test_url: str, question_to_answer: dict):
+        self.pages_count = 1
         self.driver.get(test_url)
         print("Прохожу тест...")
         # Нажимаем на кнопку для начала
@@ -158,6 +171,8 @@ class PortalTestSolver:
 
             try:
                 self.driver.find_element(By.NAME, "next").click()
+                self.pages_count += 1
+                print(f"Страница: {self.pages_count}")
                 self.driver.find_element(By.XPATH,
                                          "/html/body/div[2]/div[3]/div/div/section[1]/div[1]/div[3]/div/div/form/button").click()
                 WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(
