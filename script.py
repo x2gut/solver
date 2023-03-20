@@ -45,16 +45,11 @@ class PortalTestSolver:
             if self.driver.find_element(By.XPATH, "//p[contains(text(), 'У Вас більше немає спроб')]") is not None:
                 print("У вас больше нет попыток.")
                 return
-        except NoSuchElementException:
-            pass
-        try:
+
             if self.driver.find_element(By.XPATH, "//p[contains(text(), 'Кількість дозволених спроб: 1')]") is not None:
                 print("В этом тесте разрешена только одна попытка. Я не могу пройти его.")
                 return
-        except NoSuchElementException:
-            pass
         # Проверка есть ли вопросы
-        try:
             if self.driver.find_element(By.CLASS_NAME, "alert-danger") is not None:
                 print('В этом тесте нет вопросов!')
                 return
@@ -105,7 +100,6 @@ class PortalTestSolver:
 
         for question, answer in zip(questions, answers):
             question_to_answer.setdefault(question, []).append(answer)
-        print(question_to_answer)
         return question_to_answer
 
     def get_results(self):
