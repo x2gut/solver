@@ -7,7 +7,6 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 import validators
 
-
 class PortalTestSolver:
     def __init__(self, driver_path: str, headless: bool):
         self.question_to_answer = None
@@ -115,6 +114,7 @@ class PortalTestSolver:
         print("Прохожу тест...")
         # Нажимаем на кнопку для начала
         self.driver.find_element(By.CLASS_NAME, "btn-secondary").click()
+
         while "review" not in self.driver.current_url:
             question_list = []
             answer_list = []
@@ -140,12 +140,11 @@ class PortalTestSolver:
                                         if item == answer and question_item == question:
                                             try:
                                                 self.driver.find_element(By.XPATH,
-                                                                         f"//label[contains(text(), '{item}')]").click()
+                                                                         f"//label[text()='{item}']").click()
                                                 time.sleep(1)
                                             except InvalidSelectorException:
-                                                print(InvalidSelectorException)
                                                 self.driver.find_element(By.XPATH,
-                                                                         f'//label[contains(text(), "{item}")]').click()
+                                                                         f'//label[text()="{item}"]').click()
                                                 time.sleep(1)
                         except InvalidSelectorException:
                             if self.driver.find_element(By.XPATH,
@@ -155,12 +154,12 @@ class PortalTestSolver:
                                         if item == answer and question_item == question:
                                             try:
                                                 self.driver.find_element(By.XPATH,
-                                                                         f'//label[contains(text(), "{item}")]').click()
+                                                                         f'//label[text()="{item}"]').click()
                                                 time.sleep(1)
                                             except InvalidSelectorException:
                                                 print(InvalidSelectorException)
                                                 self.driver.find_element(By.XPATH,
-                                                                         f"//label[contains(text(), '{item}')]").click()
+                                                                         f"//label[text()='{item}']").click()
                                                 time.sleep(1)
                     except NoSuchElementException:
                         continue
