@@ -25,6 +25,7 @@ def solve_function():
             solve_function()
         else:
             solve_test.solve_test(link_to_test, answers)
+            solve_test.create_database(answers)
             solve_test.get_results()
             continue_or_exit = input("Continue? [y/n]: ")
 

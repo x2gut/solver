@@ -4,8 +4,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+import sqlite3
 import time
 import validators
+
 
 class PortalTestSolver:
     def __init__(self, driver_path: str, headless: bool):
@@ -48,7 +50,7 @@ class PortalTestSolver:
             if self.driver.find_element(By.XPATH, "//p[contains(text(), 'Кількість дозволених спроб: 1')]") is not None:
                 print("В этом тесте разрешена только одна попытка. Я не могу пройти его.")
                 return
-        # Проверка есть ли вопросы
+            # Проверка есть ли вопросы
             if self.driver.find_element(By.CLASS_NAME, "alert-danger") is not None:
                 print('В этом тесте нет вопросов!')
                 return
@@ -174,6 +176,26 @@ class PortalTestSolver:
                     (By.XPATH, "/html/body/div[4]/div[3]/div/div[2]/div/div[2]/input[1]"))).click()
             except NoSuchElementException:
                 continue
+
+    def create_database(self, question_to_answer: dict):
+        self.course_name = self.driver.find_element(By.XPATH, "/html/body/div[2]/div[3]/header/div/div/div/div[1]/div[1]/div/div/h1").text.replace(" ", "_")
+
+        connection = sqlite3.connect("question_to_answer.db")
+        cursor = connection.cursor()
+
+        cursor.execute(f"""CREATE TABLE IF NOT EXISTS {self.course_name}(
+        question TEXT,
+        answer TEXT)""")
+        connection.commit()
+
+        for question, answers in question_to_answer.items():
+            for answer in answers:
+                cursor.execute("SELECT * FROM {} WHERE question=? AND answer=?".format(self.course_name), (question, answer))
+                result = cursor.fetchone()
+                if result is None:
+                    cursor.execute("INSERT INTO {}(question, answer) VALUES(?, ?)".format(self.course_name), (question, answer))
+
+        connection.commit()
 
     def quit_driver(self):
         self.driver.quit()
